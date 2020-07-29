@@ -1,0 +1,90 @@
+
+%Github: CyberAcumen
+
+
+while 1 
+    Choice=menu('Please choose the option','Run Motion Detector', 'Dont run motion detection');
+    Check=0; %Since there are no boolean variables in MATLAB
+    switch Choice
+        case 1 
+            
+            cam = webcam
+            preview(cam)
+            RefFrame=snapshot(cam);
+
+            for i=0:100
+                CurrFrame=snapshot(cam);
+            end
+            x=RefFrame-CurrFrame;
+            
+            %This shows the details of RGB values;
+            RGB_Value=size(x)
+            gray_x = rgb2gray(x);
+            
+            %threshold is 0.8 here.
+            %bw_x = im2bw(gray_x, 0.8);
+            bw_x=imbinarize(gray_x, 'adaptive');
+ 
+            %tilde sign inverts image. Like turn black to white, and white to black.
+            bw= ~bw_x;
+ 
+            %1000 here means number of pixels to get rid of aka NOISE
+            bw = bwareaopen (bw,1000);
+ 
+            %4th level or 8th level connectivity
+            %8th level connectivity also includes diagonally connecting
+            %compopnents/objects in a Binary image
+            [bwLabel, Objectss] = bwlabel (bw, 8);
+            disp('Total number of objects detected:');
+            Objectss
+ 
+            %regionprops is short for Reginal related properties
+            Locations=regionprops (bwLabel, 'BoundingBox', 'Centroid');
+ 
+            %This 'Locations' will give x, y, height and width for 'Bounding box'.
+            %We can add multiple properties here.
+            disp('Locations of Centroid and Bounding Box:');
+            Locations
+ 
+            %The "hold on" here will stay pause for a moment 
+            figure
+            imshowpair(x,bw,'montage')
+            hold on;
+            
+            
+            
+            
+             for i=1:length(Locations)
+                 thisBB=Locations(i).BoundingBox;
+                 r=rectangle('Position' , [thisBB(1), thisBB(2), thisBB(3), thisBB(4)] );
+                 r.EdgeColor = 'm';
+                 r.LineWidth = 3;
+             end
+            
+            
+            %Cat is short for concatenation of two matrices
+            CentroidLocation = cat(1, Locations.Centroid)
+            plot (CentroidLocation(:,1), CentroidLocation(:,2),'m*')
+            hold off
+            
+            %Once all function is done, we stop the camera
+            closepreview;
+            clear cam;
+            %Case 1 concluded
+            
+        case 2
+            disp('Not running Motion Detector');
+            disp('Closing window...');
+            Check=1;
+            
+        otherwise
+            disp('Wrong Choice...');
+    end %Switch closed
+    
+    if Check==1
+        disp('Program successfully terminated!');
+        break
+    end
+    
+    disp('Going to menu...');    
+    end %while loop end
